@@ -10,6 +10,7 @@
 #include"Ellipse.h"
 #include"Curves.h"
 #include"Points.h"
+#include"Clipping.h"
 using namespace std;
 enum Action{
 	parametricLine, dDALine, bresenhamLine, 
@@ -376,7 +377,7 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
 			BresenhamLine(hdc, x[0], y[0], x[1], y[1], c);
 			cnt = 0;
-			cout << "Drawing direct circle" << endl;
+			cout << "Drawing bresenham's line" << endl;
 		}
 		else if (cnt == 2 && action == polarCircle) {
 			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
@@ -435,12 +436,112 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 			cnt = 0;
 			cout << "Filling rectangle with hermite" << endl;
 		}
-		ReleaseDC(hwnd, hdc);
+		else if(action == clipRecLine)
+        {
+		    if(cnt == 1)
+                rectangular_window(hdc, x[0], y[0], 400, 200, c); // Draw a rectangular window
+
+             else if(cnt == 3)
+            {
+                float x1 = (float)x[1];
+                float y1 = (float)y[1];
+                float x2 = (float)x[2];
+                float y2 = (float)y[2];
+                if(line_clipping_rect(x[0], x[0] + 400, y[0], y[0] + 200, x1, y1, x2, y2))
+                    BresenhamLine(hdc, x1, y1, x2, y2, c);
+                cnt = 1;
+            }
+
+        }
+
+        else if(action == clipSquareLine)
+        {
+            if(cnt == 1)
+                rectangular_window(hdc, x[0], y[0], 300, 300, c); // Draw a square window
+
+            else if(cnt == 3)
+            {
+                float x1 = (float)x[1];
+                float y1 = (float)y[1];
+                float x2 = (float)x[2];
+                float y2 = (float)y[2];
+                if(line_clipping_rect(x[0], x[0] + 300, y[0], y[0] + 300, x1, y1, x2, y2))
+                    BresenhamLine(hdc, x1, y1, x2, y2, c);
+                cnt = 1;
+            }
+
+        }
+
+        else if(action == clipCircleLine)
+        {
+            int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            if(cnt == 2)
+            {
+
+                PolarCircle(hdc, x[0], y[0], r, c); // Draw a circular window
+            }
+
+            else if(cnt == 4)
+            {
+                float x1 = (float)x[2];
+                float y1 = (float)y[2];
+                float x2 = (float)x[3];
+                float y2 = (float)y[3];
+
+                line_clipping_circle(hdc, x[0], y[0], r, x1, y1, x2, y2, c);
+                cnt = 2;
+            }
+
+        }
+
+        else if(action == clipRecPoint)
+        {
+            if(cnt == 1)
+                rectangular_window(hdc, x[0], y[0], 400, 200, c); // Draw a rectangular window
+
+            else if(cnt == 2)
+            {
+                point_clipping_rectangular(hdc, x[0], x[0] + 400, y[0], y[0] + 200, x[1], y[1], c);
+                cnt = 1;
+            }
+
+        }
+
+        else if(action == clipSquarePoint)
+        {
+            if(cnt == 1)
+                rectangular_window(hdc, x[0], y[0], 300, 300, c); // Draw a square window
+
+            else if(cnt == 2)
+            {
+                point_clipping_rectangular(hdc, x[0], x[0] + 300, y[0], y[0] + 300, x[1], y[1], c);
+                cnt = 1;
+            }
+
+        }
+
+        else if(action == clipCirclePoint)
+        {
+            int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            if(cnt == 2)
+            {
+
+                PolarCircle(hdc, x[0], y[0], r, c); // Draw a circular window
+            }
+
+            else if(cnt == 3)
+            {
+                point_clipping_circular(hdc, x[0], y[0], r, x[2], y[2], c);
+                cnt = 2;
+            }
+
+        }
+            ReleaseDC(hwnd, hdc);
 		break;
 	case WM_RBUTTONDOWN:
 		hdc = GetDC(hwnd);
 		if(cnt>=4 && action==splines){
-			Spline(hdc, x, y, cnt, c);
+			Spline(hdc, (int*)x, (int*)y, cnt, c);
 			cnt = 0;
 			cout << "Drawing cardinal splines curves" << endl;
 		}
@@ -473,11 +574,11 @@ int APIENTRY WinMain(HINSTANCE hinst, HINSTANCE pinst, LPSTR cmd, int nsh)
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wc.hInstance = hinst;
 	wc.lpfnWndProc = MyWndProc;
-	wc.lpszClassName = L"MyClass";
+	wc.lpszClassName = "MyClass";
 	wc.lpszMenuName = NULL;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	RegisterClass(&wc);
-	HWND hwnd = CreateWindow(L"MyClass", L"2D Package", WS_OVERLAPPEDWINDOW, 200, 100, 1020, 600, NULL, NULL, hinst, 0);
+	HWND hwnd = CreateWindow("MyClass", "2D Package", WS_OVERLAPPEDWINDOW, 200, 100, 1020, 600, NULL, NULL, hinst, 0);
 	ShowWindow(hwnd, nsh);
 	UpdateWindow(hwnd);
 	MSG msg;
