@@ -9,8 +9,11 @@
 #include"Circle.h"
 #include"Ellipse.h"
 #include"Curves.h"
-#include"Points.h"
+#include <stdio.h>
+
 using namespace std;
+FILE *g_ic_file_cout_stream; FILE *g_ic_file_cin_stream;
+
 enum Action{
 	parametricLine, dDALine, bresenhamLine, 
 	directCircle, polarCircle, iterativeCircle, modifiedCircle, midCircle, 
@@ -361,22 +364,19 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 			cout << "Drawing direct circle" << endl;
 		}
 		else if (cnt == 2 && action == dDALine) {
-			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
 			DDALine(hdc, x[0], y[0], x[1], y[1], c);
 			cnt = 0;
 			cout << "Drawing dda line" << endl;
 		}
 		else if (cnt == 2 && action == parametricLine) {
-			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
 			ParametricLine(hdc, x[0], y[0], x[1], y[1], c);
 			cnt = 0;
 			cout << "Drawing parametric line" << endl;
 		}
 		else if (cnt == 2 && action == bresenhamLine) {
-			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
 			BresenhamLine(hdc, x[0], y[0], x[1], y[1], c);
 			cnt = 0;
-			cout << "Drawing direct circle" << endl;
+			cout << "Drawing Bresenham Line" << endl;
 		}
 		else if (cnt == 2 && action == polarCircle) {
 			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
@@ -464,8 +464,16 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 	}
 	return 0;
 }
+bool InitConsole()
+{
+    if (!AllocConsole()) { return false; }
+    if (freopen_s(&g_ic_file_cout_stream, "CONOUT$", "w", stdout) != 0) { return false; } // For std::cout
+    if (freopen_s(&g_ic_file_cin_stream, "CONIN$", "w+", stdin) != 0) { return false; } // For std::cin
+    return true;
+}
 int APIENTRY WinMain(HINSTANCE hinst, HINSTANCE pinst, LPSTR cmd, int nsh)
 {
+    InitConsole();
 	WNDCLASS wc;
 	wc.cbClsExtra = wc.cbWndExtra = 0;
 	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
@@ -473,11 +481,11 @@ int APIENTRY WinMain(HINSTANCE hinst, HINSTANCE pinst, LPSTR cmd, int nsh)
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wc.hInstance = hinst;
 	wc.lpfnWndProc = MyWndProc;
-	wc.lpszClassName = L"MyClass";
+	wc.lpszClassName = TEXT("MyClass");
 	wc.lpszMenuName = NULL;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	RegisterClass(&wc);
-	HWND hwnd = CreateWindow(L"MyClass", L"2D Package", WS_OVERLAPPEDWINDOW, 200, 100, 1020, 600, NULL, NULL, hinst, 0);
+	HWND hwnd = CreateWindow(TEXT("MyClass"), TEXT("2D Package"), WS_OVERLAPPEDWINDOW, 200, 100, 1020, 600, NULL, NULL, hinst, 0);
 	ShowWindow(hwnd, nsh);
 	UpdateWindow(hwnd);
 	MSG msg;
