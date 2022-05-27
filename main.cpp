@@ -377,7 +377,7 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
 			BresenhamLine(hdc, x[0], y[0], x[1], y[1], c);
 			cnt = 0;
-			cout << "Drawing bresenham's line" << endl;
+			cout << "Drawing Bresenham Line" << endl;
 		}
 		else if (cnt == 2 && action == polarCircle) {
 			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
@@ -541,7 +541,7 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 	case WM_RBUTTONDOWN:
 		hdc = GetDC(hwnd);
 		if(cnt>=4 && action==splines){
-			Spline(hdc, (int*)x, (int*)y, cnt, c);
+			Spline(hdc, x, y, cnt, c);
 			cnt = 0;
 			cout << "Drawing cardinal splines curves" << endl;
 		}
@@ -574,11 +574,11 @@ int APIENTRY WinMain(HINSTANCE hinst, HINSTANCE pinst, LPSTR cmd, int nsh)
 	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wc.hInstance = hinst;
 	wc.lpfnWndProc = MyWndProc;
-	wc.lpszClassName = "MyClass";
+	wc.lpszClassName = TEXT("MyClass");
 	wc.lpszMenuName = NULL;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	RegisterClass(&wc);
-	HWND hwnd = CreateWindow("MyClass", "2D Package", WS_OVERLAPPEDWINDOW, 200, 100, 1020, 600, NULL, NULL, hinst, 0);
+	HWND hwnd = CreateWindow(TEXT("MyClass"), TEXT("2D Package"), WS_OVERLAPPEDWINDOW, 200, 100, 1020, 600, NULL, NULL, hinst, 0);
 	ShowWindow(hwnd, nsh);
 	UpdateWindow(hwnd);
 	MSG msg;

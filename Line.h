@@ -1,5 +1,4 @@
 #pragma once
-#include<iostream>
 #include"Points.h"
 void swap(int& x1, int& y1, int& x2, int& y2)
 {
@@ -18,7 +17,6 @@ int Round(double x)
 void BresenhamLine(HDC hdc, int x1, int y1, int x2, int y2, COLORREF c) {
 	int dx = x2 - x1;
 	int dy = y2 - y1;
-	std::cout << "hi";
 	if (abs(dx) >= abs(dy)) {
 		if (x1 > x2) {
 			swap(x1, y1, x2, y2);
