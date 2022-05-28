@@ -11,6 +11,7 @@
 #include"Curves.h"
 #include"Points.h"
 #include"Clipping.h"
+#include "FillQuarter.h"
 using namespace std;
 enum Action{
 	parametricLine, dDALine, bresenhamLine, 
@@ -535,6 +536,31 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
                 cnt = 2;
             }
 
+        }
+        else if (action == fillCircleWithLines)
+        {
+            int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            if (cnt == 2)
+            {
+            PolarCircle(hdc, x[0], y[0], r, c);
+            }
+            else if (cnt == 4)
+            {
+            FillCircleWithLines(hdc, x[0], y[0], r, x[2], y[2], x[3], y[3], c);
+            cnt = 2;
+            }
+        }
+        else if (action == fillCircleWithCircles)
+        {
+            int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            if (cnt == 2)
+            {
+            }
+            else if (cnt == 4)
+            {
+            FillCircleWithCircles(hdc, x[0], y[0], r, x[2], y[2], x[3], y[3], c);
+            cnt = 2;
+            }
         }
             ReleaseDC(hwnd, hdc);
 		break;
