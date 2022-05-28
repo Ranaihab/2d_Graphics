@@ -509,7 +509,10 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 		else if(action == clipRecLine && cnt==5){
 		    cnt=0;
 		    cout<<"Clipping Line"<<endl;
-		    //line_clipping_rect()
+            int w =  sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            int h =  sqrt((x[0] - x[2]) * (x[0] - x[2]) + (y[0] - y[2]) * (y[0] - y[2]));
+            if(line_clipping_rect(x[0], x[0]+w, y[0], y[0]+h, x[3], y[3], x[4], y[4]))
+                ParametricLine(hdc, x[3], y[3], x[4], y[4], c);
 		}
         else if(action == clipRecPoint && cnt==4){
             cnt=0;
@@ -517,7 +520,7 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
             int h =  sqrt((x[0] - x[2]) * (x[0] - x[2]) + (y[0] - y[2]) * (y[0] - y[2]));
             point_clipping_rectangular(hdc, x[0], x[0]+w,y[0], y[0]+h, x[3],y[3], c);
             cout<<"Clipping Point"<<endl;
-            //line_clipping_rect()
+
         }
         else if ((action == clipSquareLine || action == clipSquarePoint) && cnt == 2) {
             cout<<"Drawing Square window"<<endl;
@@ -528,7 +531,8 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
             cnt=0;
             int l =  sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
             cout<<"Clipping Line"<<endl;
-            //line_clipping_rect()
+            if(line_clipping_rect(x[0], x[0]+l, y[0], y[0]+l, x[3], y[3], x[2], y[2]))
+                ParametricLine(hdc, x[3], y[3], x[2], y[2], c);
         }
         else if(action == clipSquarePoint && cnt==3){
             cnt=0;
