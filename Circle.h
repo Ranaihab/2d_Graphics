@@ -23,7 +23,7 @@ void DirectCircle(HDC hdc, int xc, int yc, int r, COLORREF c) {
 }
 void PolarCircle(HDC hdc, int xc, int yc, int r, COLORREF c) {
 	double theta = 0;
-	double dtheta = 1.0 / r;
+	double dtheta = 1.0 / (2*r);
 	double x = r;
 	double y = 0;
 	Draw8Points(hdc, xc, yc, Round(x), Round(y), RGB(255, 255, 255));
@@ -35,7 +35,7 @@ void PolarCircle(HDC hdc, int xc, int yc, int r, COLORREF c) {
 	}
 }
 void IterativeCircle(HDC hdc, int xc, int yc, int r, COLORREF c) {
-	double theta = 1.0 / r;
+	double theta = 1.0 / (2*r);
 	double cd = cos(theta);
 	double sd = sin(theta);
 	double x = r;

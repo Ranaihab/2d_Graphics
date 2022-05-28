@@ -7,12 +7,17 @@
 #include <math.h>
 #include"Line.h"
 #include"Circle.h"
+#include"Clipping.h"
 #include"Ellipse.h"
 #include"Curves.h"
-#include"Points.h"
-#include"Clipping.h"
-#include "FillQuarter.h"
+#include"ConvexFill.h"
+#include"GeneralPolygonFill.h"
+#include"FillQuareter.h"
+#include"FloodFill.h"
+#include <stdio.h>
+
 using namespace std;
+
 enum Action{
 	parametricLine, dDALine, bresenhamLine, 
 	directCircle, polarCircle, iterativeCircle, modifiedCircle, midCircle, 
@@ -197,7 +202,7 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 	static int y[100];
 	static int cnt = 0;
 	static Action action;
-	static COLORREF c;
+	static COLORREF c, fillC;
 
 	switch (mcode)
 	{
@@ -214,7 +219,12 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 	case WM_COMMAND:
 		if (LOWORD(wp) == 1) {
 			if (HIWORD(wp) == CBN_SELCHANGE) {
-				c = selectColor(lp);
+				if (action == recursiveFlood || action == nonRecursiveFlood) {
+					fillC = selectColor(lp);
+				}
+				else {
+					c = selectColor(lp);
+				}
 			}
 		}
 		else if (HIWORD(wp) == CBN_SELCHANGE)
@@ -223,6 +233,7 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 			TCHAR  ListItem[256];
 			(TCHAR)SendMessage((HWND)lp, (UINT)CB_GETLBTEXT, (WPARAM)ItemIndex, (LPARAM)ListItem);
 			if (!_tcscmp(ListItem, _T("DDA"))) {
+				cout << ListItem;
 				action = dDALine;
 				SendMessage(lineHwnd, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
 			}
@@ -356,6 +367,7 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 		x[cnt] = LOWORD(lp);
 		y[cnt++] = HIWORD(lp);
 		cout << "Clicked point: " << x[cnt - 1] << " " << y[cnt - 1] << endl;
+		rectangular_window(hdc, 200, 300, 200, 300, c);
 		if (cnt == 2 && action == directCircle) {
 			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
 			DirectCircle(hdc, x[0], y[0], r, c);
@@ -363,19 +375,16 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 			cout << "Drawing direct circle" << endl;
 		}
 		else if (cnt == 2 && action == dDALine) {
-			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
 			DDALine(hdc, x[0], y[0], x[1], y[1], c);
 			cnt = 0;
 			cout << "Drawing dda line" << endl;
 		}
 		else if (cnt == 2 && action == parametricLine) {
-			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
 			ParametricLine(hdc, x[0], y[0], x[1], y[1], c);
 			cnt = 0;
 			cout << "Drawing parametric line" << endl;
 		}
 		else if (cnt == 2 && action == bresenhamLine) {
-			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
 			BresenhamLine(hdc, x[0], y[0], x[1], y[1], c);
 			cnt = 0;
 			cout << "Drawing Bresenham Line" << endl;
@@ -437,139 +446,74 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 			cnt = 0;
 			cout << "Filling rectangle with hermite" << endl;
 		}
-		else if(action == clipRecLine)
-        {
-		    if(cnt == 1)
-                rectangular_window(hdc, x[0], y[0], 400, 200, c); // Draw a rectangular window
+		else if (cnt == 1 && action == recursiveFlood) {
+			recursiveFloodFill(hdc, x[0], y[0], c, fillC);
+			cnt = 0;
+			cout << "Filling shape with recursive flood fill" << endl;
+		}
+		else if (cnt == 1 && action == nonRecursiveFlood) {
+			NRFloodFill(hdc, x[0], y[0], c, fillC);
+			cnt = 0;
+			cout << "Filling shape with non-recursive flood fill" << endl;
+		}
+		else if (action == fillCircleWithCircles) {
+			if (cnt == 2) {
+				int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+				PolarCircle(hdc, x[0], y[0], r, c);
+				cout << "Circle to be filled is drawn" << endl;
+			}
+			else if (cnt == 4) {
+				int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+				FillCircleWithCircles(hdc, x[0], y[0], r, x[2], y[2], x[3], y[3], c);
+				cnt = 0;
+				cout << "Filling circles with circles" << endl;
+			}
+		}
+		else if (action == fillCircleWithLines) {
+			if (cnt == 2) {
+				int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+				PolarCircle(hdc, x[0], y[0], r, c);
+				cout << "Circle to be filled is drawn" << endl;
+			}
+			else if (cnt == 4) {
+				int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+				FillCircleWithLines(hdc, x[0], y[0], r, x[2], y[2], x[3], y[3], c);
+				cnt = 0;
+				cout << "Filling circles with lines" << endl;
+			}
+		}
+		else if ((action == clipCircleLine || action==clipCirclePoint) && cnt ==2) {
+			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+			PolarCircle(hdc, x[0], y[0], r, c);
+		}
+		else if (action == clipCircleLine && cnt == 4) {
+			
+		}
 
-             else if(cnt == 3)
-            {
-                float x1 = (float)x[1];
-                float y1 = (float)y[1];
-                float x2 = (float)x[2];
-                float y2 = (float)y[2];
-                if(line_clipping_rect(x[0], x[0] + 400, y[0], y[0] + 200, x1, y1, x2, y2))
-                    BresenhamLine(hdc, x1, y1, x2, y2, c);
-                cnt = 1;
-            }
-
-        }
-
-        else if(action == clipSquareLine)
-        {
-            if(cnt == 1)
-                rectangular_window(hdc, x[0], y[0], 300, 300, c); // Draw a square window
-
-            else if(cnt == 3)
-            {
-                float x1 = (float)x[1];
-                float y1 = (float)y[1];
-                float x2 = (float)x[2];
-                float y2 = (float)y[2];
-                if(line_clipping_rect(x[0], x[0] + 300, y[0], y[0] + 300, x1, y1, x2, y2))
-                    BresenhamLine(hdc, x1, y1, x2, y2, c);
-                cnt = 1;
-            }
-
-        }
-
-        else if(action == clipCircleLine)
-        {
-            int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
-            if(cnt == 2)
-            {
-
-                PolarCircle(hdc, x[0], y[0], r, c); // Draw a circular window
-            }
-
-            else if(cnt == 4)
-            {
-                float x1 = (float)x[2];
-                float y1 = (float)y[2];
-                float x2 = (float)x[3];
-                float y2 = (float)y[3];
-
-                line_clipping_circle(hdc, x[0], y[0], r, x1, y1, x2, y2, c);
-                cnt = 2;
-            }
-
-        }
-
-        else if(action == clipRecPoint)
-        {
-            if(cnt == 1)
-                rectangular_window(hdc, x[0], y[0], 400, 200, c); // Draw a rectangular window
-
-            else if(cnt == 2)
-            {
-                point_clipping_rectangular(hdc, x[0], x[0] + 400, y[0], y[0] + 200, x[1], y[1], c);
-                cnt = 1;
-            }
-
-        }
-
-        else if(action == clipSquarePoint)
-        {
-            if(cnt == 1)
-                rectangular_window(hdc, x[0], y[0], 300, 300, c); // Draw a square window
-
-            else if(cnt == 2)
-            {
-                point_clipping_rectangular(hdc, x[0], x[0] + 300, y[0], y[0] + 300, x[1], y[1], c);
-                cnt = 1;
-            }
-
-        }
-
-        else if(action == clipCirclePoint)
-        {
-            int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
-            if(cnt == 2)
-            {
-
-                PolarCircle(hdc, x[0], y[0], r, c); // Draw a circular window
-            }
-
-            else if(cnt == 3)
-            {
-                point_clipping_circular(hdc, x[0], y[0], r, x[2], y[2], c);
-                cnt = 2;
-            }
-
-        }
-        else if (action == fillCircleWithLines)
-        {
-            int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
-            if (cnt == 2)
-            {
-            PolarCircle(hdc, x[0], y[0], r, c);
-            }
-            else if (cnt == 4)
-            {
-            FillCircleWithLines(hdc, x[0], y[0], r, x[2], y[2], x[3], y[3], c);
-            cnt = 2;
-            }
-        }
-        else if (action == fillCircleWithCircles)
-        {
-            int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
-            if (cnt == 2)
-            {
-            }
-            else if (cnt == 4)
-            {
-            FillCircleWithCircles(hdc, x[0], y[0], r, x[2], y[2], x[3], y[3], c);
-            cnt = 2;
-            }
-        }
-            ReleaseDC(hwnd, hdc);
+		ReleaseDC(hwnd, hdc);
 		break;
 	case WM_RBUTTONDOWN:
 		hdc = GetDC(hwnd);
+		POINT points[100];
+		for (int i = 0; i < cnt; i++) {
+			POINT p;
+			p.x = x[i]; p.y = y[i];
+			points[i] = p;
+		}
 		if(cnt>=4 && action==splines){
 			Spline(hdc, x, y, cnt, c);
 			cnt = 0;
 			cout << "Drawing cardinal splines curves" << endl;
+		}
+		else if (cnt >= 4 && action == nonConvexFill) {
+			GeneralPolygonFill(hdc, points, cnt, c);
+			cout << "Filling polygon using non-convex fill" << endl;
+			cnt = 0;
+		}
+		else if (cnt >= 4 && action == convexFill) {
+			ConvexFill(hdc, points, cnt, c);
+			cout << "Filling polygon using convex fill" << endl;
+			cnt = 0;
 		}
 		ReleaseDC(hwnd, hdc);
 		break;
@@ -591,8 +535,16 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 	}
 	return 0;
 }
+bool InitConsole()
+{
+    if (!AllocConsole()) { return false; }
+    if (freopen("CONOUT$", "w", stdout) != 0) { return false; } // For std::cout
+    if (freopen("CONIN$", "w+", stdin) != 0) { return false; } // For std::cin
+    return true;
+}
 int APIENTRY WinMain(HINSTANCE hinst, HINSTANCE pinst, LPSTR cmd, int nsh)
 {
+    InitConsole();
 	WNDCLASS wc;
 	wc.cbClsExtra = wc.cbWndExtra = 0;
 	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
