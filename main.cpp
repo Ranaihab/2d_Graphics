@@ -187,6 +187,8 @@ void loadData(HDC hdc) {
 		int x, y;
 		COLORREF c;
 		f >> c >> x >> y;
+        if(f.eof())
+            break;
 		Points::addPoint(hdc, x, y, c);
 	}
 	f.close();
@@ -367,7 +369,6 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 		x[cnt] = LOWORD(lp);
 		y[cnt++] = HIWORD(lp);
 		cout << "Clicked point: " << x[cnt - 1] << " " << y[cnt - 1] << endl;
-		rectangular_window(hdc, 200, 300, 200, 300, c);
 		if (cnt == 2 && action == directCircle) {
 			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
 			DirectCircle(hdc, x[0], y[0], r, c);
@@ -482,14 +483,59 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 				cout << "Filling circles with lines" << endl;
 			}
 		}
-		else if ((action == clipCircleLine || action==clipCirclePoint) && cnt ==2) {
+		else if ((action == clipCircleLine || action == clipCirclePoint) && cnt == 2) {
 			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+			cout << "Drawing Circle Window" << endl;
 			PolarCircle(hdc, x[0], y[0], r, c);
 		}
 		else if (action == clipCircleLine && cnt == 4) {
-			
+			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+			line_clipping_circle(hdc, x[0], y[0], r, x[2], y[2], x[3], y[3], c);
+			cnt = 0;
+			cout << "Clipping line" << endl;
 		}
-
+		else if (action == clipCirclePoint && cnt == 3) {
+			int r = sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+			point_clipping_circular(hdc, x[0], y[0], r, x[2], y[2], c);
+			cnt = 0;
+			cout << "Clipping Point" << endl;
+		}
+		else if ((action == clipRecLine || action == clipRecPoint || action == clipRecPolygon) && cnt == 3) {
+            cout<<"Drawing Rectangular window"<<endl;
+            int w =  sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            int h =  sqrt((x[0] - x[2]) * (x[0] - x[2]) + (y[0] - y[2]) * (y[0] - y[2]));
+            rectangular_window(hdc, x[0], y[0], w, h, c);
+        }
+		else if(action == clipRecLine && cnt==5){
+		    cnt=0;
+		    cout<<"Clipping Line"<<endl;
+		    //line_clipping_rect()
+		}
+        else if(action == clipRecPoint && cnt==4){
+            cnt=0;
+            int w =  sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            int h =  sqrt((x[0] - x[2]) * (x[0] - x[2]) + (y[0] - y[2]) * (y[0] - y[2]));
+            point_clipping_rectangular(hdc, x[0], x[0]+w,y[0], y[0]+h, x[3],y[3], c);
+            cout<<"Clipping Point"<<endl;
+            //line_clipping_rect()
+        }
+        else if ((action == clipSquareLine || action == clipSquarePoint) && cnt == 2) {
+            cout<<"Drawing Square window"<<endl;
+            int l =  sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            rectangular_window(hdc, x[0], y[0], l, l, c);
+        }
+        else if(action == clipSquareLine && cnt==4){
+            cnt=0;
+            int l =  sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            cout<<"Clipping Line"<<endl;
+            //line_clipping_rect()
+        }
+        else if(action == clipSquarePoint && cnt==3){
+            cnt=0;
+            int l =  sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            point_clipping_rectangular(hdc, x[0], x[0]+l,y[0], y[0]+l, x[2],y[2], c);
+            cout<<"Clipping Point"<<endl;
+        }
 		ReleaseDC(hwnd, hdc);
 		break;
 	case WM_RBUTTONDOWN:
@@ -517,14 +563,6 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 		}
 		ReleaseDC(hwnd, hdc);
 		break;
-	/*case WM_SETCURSOR:
-		if (LOWORD(lp) == HTCLIENT)
-		{
-			hCursor = LoadCursor(NULL, IDC_CROSS);
-			SetCursor(hCursor);
-			return TRUE;
-		}
-		break;*/
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
 		break;
