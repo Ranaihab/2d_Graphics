@@ -92,6 +92,11 @@ HWND createClippingDropDown(HWND hwnd) {
 	SendMessage(curveHwnd, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
 	return curveHwnd;
 }
+HWND createTextBox(HWND hwnd)
+{
+    HWND textBox = CreateWindow("EDIT", "Enter number of sides", WS_BORDER | WS_CHILD | WS_VISIBLE, 10, 30, 150, 22, hwnd, NULL, NULL, NULL);
+    return textBox;
+}
 
 HWND createColorDropDown(HWND hwnd) {
 	HWND colorHwnd = CreateWindow(WC_COMBOBOX, TEXT("color"), CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE | WS_VISIBLE, 800, 0, 100, 550, hwnd, (HMENU)1, NULL, NULL);
@@ -197,7 +202,7 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 	static int cnt = 0;
 	static Action action;
 	static COLORREF c;
-
+    static vector<Vertex> vertices;
 	switch (mcode)
 	{
 	case WM_CREATE:
@@ -313,6 +318,7 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 				action = clipRecPolygon;
 				SendMessage(clipHwnd, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
 			}
+
 			else if (!_tcscmp(ListItem, _T("Square, Point"))) {
 				action = clipSquarePoint;
 				SendMessage(clipHwnd, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
@@ -452,6 +458,8 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
                 cnt = 1;
             }
 
+             cnt = 0;
+             cout << "Clipping line in rectangular window" << endl;
         }
 
         else if(action == clipSquareLine)
@@ -469,7 +477,8 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
                     BresenhamLine(hdc, x1, y1, x2, y2, c);
                 cnt = 1;
             }
-
+            cnt = 0;
+            cout << "Clipping line in square window" << endl;
         }
 
         else if(action == clipCircleLine)
@@ -491,7 +500,8 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
                 line_clipping_circle(hdc, x[0], y[0], r, x1, y1, x2, y2, c);
                 cnt = 2;
             }
-
+            cnt = 0;
+            cout << "Clipping line in circular window" << endl;
         }
 
         else if(action == clipRecPoint)
@@ -504,7 +514,8 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
                 point_clipping_rectangular(hdc, x[0], x[0] + 400, y[0], y[0] + 200, x[1], y[1], c);
                 cnt = 1;
             }
-
+            cnt = 0;
+            cout << "Clipping point in rectangular window" << endl;
         }
 
         else if(action == clipSquarePoint)
@@ -517,7 +528,8 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
                 point_clipping_rectangular(hdc, x[0], x[0] + 300, y[0], y[0] + 300, x[1], y[1], c);
                 cnt = 1;
             }
-
+            cnt = 0;
+            cout << "Clipping point in square window" << endl;
         }
 
         else if(action == clipCirclePoint)
@@ -534,6 +546,30 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
                 point_clipping_circular(hdc, x[0], y[0], r, x[2], y[2], c);
                 cnt = 2;
             }
+            cnt = 0;
+            cout << "Clipping point in circular window" << endl;
+        }
+        else if(action == clipRecPolygon)
+        {
+            if(cnt == 1)
+                rectangular_window(hdc, x[0], y[0], 400, 200, c); // Draw a rectangular window
+
+            else if(cnt == 3) // Store the vertices of the first side of the polygon
+            {
+                //BresenhamLine(hdc, x[1], y[1], x[2], y[2], c);
+
+                // Store the end-points of the first side in the vertex vector
+                vertices.push_back({x[1], y[1]});
+                vertices.push_back({x[2], y[2]});
+            }
+
+            else if(cnt > 3) // Store the vertices the next sides, each side's first end-point is the previous side's second end-point
+            {
+                //BresenhamLine(hdc, x[cnt - 2], y[cnt - 2], x[cnt - 1], y[cnt - 1], c);
+
+                // Store every second end-point
+                vertices.push_back({x[cnt - 1], y[cnt - 1]});
+            }
 
         }
             ReleaseDC(hwnd, hdc);
@@ -545,6 +581,25 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 			cnt = 0;
 			cout << "Drawing cardinal splines curves" << endl;
 		}
+
+		else if(action == clipRecPolygon)
+        {
+            //BresenhamLine(hdc, x[cnt - 1], y[cnt - 1], x[1], y[1], c);
+
+            vector<Vertex> polygon = polygon_clipping_rect(vertices, x[0], x[0] + 400, y[0], y[0] + 200);
+
+            // Draw the sides of the clipped polygon except the last one.
+            for(int i = 0; i < polygon.size() - 1; i++)
+            {
+                BresenhamLine(hdc, polygon[i].first, polygon[i].second, polygon[i + 1].first, polygon[i + 1].second, c);
+            }
+
+            // Draw the last side of the clipped polygon
+            BresenhamLine(hdc, polygon[polygon.size() - 1].first, polygon[polygon.size() - 1].second, polygon[0].first, polygon[0].second, c);
+
+            vertices.clear(); // Clear the vertices vector
+		    cnt = 0;
+        }
 		ReleaseDC(hwnd, hdc);
 		break;
 	/*case WM_SETCURSOR:

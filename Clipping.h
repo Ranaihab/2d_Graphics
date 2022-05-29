@@ -2,6 +2,7 @@
 // Created by Rana Hisham on 27-May-22.
 //
 
+typedef pair<int,int> Vertex;
 
 /* Union data structure to store the region code of an end-point. */
 union region_code
@@ -132,4 +133,157 @@ void point_clipping_circular(HDC hdc, int xc, int yc, int r, int x, int y, COLOR
     int diff_y = (yc - y);
     if(diff_x * diff_x + diff_y * diff_y < r * r)
         Points::addPoint(hdc, Round(x), Round(y), c);
+}
+
+bool in_left(Vertex vertex, int left) // return true if a vertex is
+{
+    return vertex.first >= left;
+
+}
+bool in_right(Vertex vertex, int right)
+{
+    return vertex.first <= right;
+}
+
+bool in_bottom(Vertex vertex, int bottom)
+{
+    return vertex.second >= bottom;
+}
+
+bool in_top(Vertex vertex, int top)
+{
+    return vertex.second <= top;
+}
+
+vector<Vertex> clip_left(vector<Vertex> polygon, int left)
+{
+    vector<Vertex> outlist;
+    Vertex vertex1 = polygon[polygon.size() - 1];
+    bool in1 = in_left(vertex1, left);
+
+    for(int i = 0; i < polygon.size(); i++)
+    {
+        Vertex vertex2 = polygon[i];
+        bool in2 = in_left(vertex2, left);
+        if(in1 && in2)
+            outlist.push_back(vertex2);
+        else if(in1)
+        {
+            float x,y;
+            vertical_intercept(vertex1.first,vertex1.second,vertex2.first,vertex2.second, left, x, y);
+            outlist.push_back({x,y});
+        }
+        else if(in2)
+        {
+            float x,y;
+            vertical_intercept(vertex1.first,vertex1.second,vertex2.first,vertex2.second, left, x, y);
+            outlist.push_back({x,y});
+            outlist.push_back(vertex2);
+        }
+        vertex1 = vertex2;
+        in1 = in2;
+    }
+    return outlist;
+}
+
+vector<Vertex> clip_right(vector<Vertex> polygon, int right)
+{
+    vector<Vertex> outlist;
+    Vertex vertex1 = polygon[polygon.size() - 1];
+    bool in1 = in_right(vertex1, right);
+
+    for(int i = 0; i < polygon.size(); i++)
+    {
+        Vertex vertex2 = polygon[i];
+        bool in2 = in_right(vertex2, right);
+        if(in1 && in2)
+            outlist.push_back(vertex2);
+        else if(in1)
+        {
+            float x,y;
+            vertical_intercept(vertex1.first,vertex1.second,vertex2.first,vertex2.second, right, x, y);
+            outlist.push_back({x,y});
+        }
+        else if(in2)
+        {
+            float x,y;
+            vertical_intercept(vertex1.first,vertex1.second,vertex2.first,vertex2.second, right, x, y);
+            outlist.push_back({x,y});
+            outlist.push_back(vertex2);
+        }
+        in1 = in2;
+        vertex1 = vertex2;
+    }
+    return outlist;
+}
+
+
+vector<Vertex> clip_bottom(vector<Vertex> polygon, int bottom)
+{
+    vector<Vertex> outlist;
+    Vertex vertex1 = polygon[polygon.size() - 1];
+    bool in1 = in_bottom(vertex1, bottom);
+
+    for(int i = 0; i < polygon.size(); i++)
+    {
+        Vertex vertex2 = polygon[i];
+        bool in2 = in_bottom(vertex2, bottom);
+        if(in1 && in2)
+            outlist.push_back(vertex2);
+        else if(in1)
+        {
+            float x,y;
+            horizontal_intercept(vertex1.first,vertex1.second,vertex2.first,vertex2.second, bottom, x, y);
+            outlist.push_back({x,y});
+        }
+        else if(in2)
+        {
+            float x,y;
+            horizontal_intercept(vertex1.first,vertex1.second,vertex2.first,vertex2.second, bottom, x, y);
+            outlist.push_back({x,y});
+            outlist.push_back(vertex2);
+        }
+        vertex1 = vertex2;
+        in1 = in2;
+    }
+    return outlist;
+}
+
+vector<Vertex> clip_top(vector<Vertex> polygon, int top)
+{
+    vector<Vertex> outlist;
+    Vertex vertex1 = polygon[polygon.size() - 1];
+    bool in1 = in_top(vertex1, top);
+
+    for(int i = 0; i < polygon.size(); i++)
+    {
+        Vertex vertex2 = polygon[i];
+        bool in2 = in_top(vertex2, top);
+        if(in1 && in2)
+            outlist.push_back(vertex2);
+        else if(in1)
+        {
+            float x,y;
+            horizontal_intercept(vertex1.first,vertex1.second,vertex2.first,vertex2.second, top, x, y);
+            outlist.push_back({x,y});
+        }
+        else if(in2)
+        {
+            float x,y;
+            horizontal_intercept(vertex1.first,vertex1.second,vertex2.first,vertex2.second, top, x, y);
+            outlist.push_back({x,y});
+            outlist.push_back(vertex2);
+        }
+        vertex1 = vertex2;
+        in1 = in2;
+    }
+    return outlist;
+}
+vector<Vertex> polygon_clipping_rect(vector<Vertex> polygon, int left, int right, int bottom, int top)
+{
+    vector<Vertex> clipped_polygon = clip_bottom(polygon, bottom);
+    clipped_polygon = clip_left(clipped_polygon, left);
+    clipped_polygon = clip_top(clipped_polygon, top);
+    clipped_polygon = clip_right(clipped_polygon, right);
+    return clipped_polygon;
 }
