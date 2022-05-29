@@ -5,7 +5,6 @@
 #include"line.h"
 #include<math.h>
 
-typedef pair<int,int> Vertex;
 
 /* Union data structure to store the region code of an end-point. */
 union region_code
@@ -182,36 +181,36 @@ void point_clipping_circular(HDC hdc, int xc, int yc, int r, int x, int y, COLOR
 
 }
 
-bool in_left(Vertex vertex, int left) // Return true if a vertex is inside the left edge of the window
+bool in_left(pair<int,int>  vertex, int left) // Return true if a vertex is inside the left edge of the window
 {
     return vertex.first >= left;
 
 }
-bool in_right(Vertex vertex, int right) // Return true if a vertex is inside the right edge of the window
+bool in_right(pair<int,int>  vertex, int right) // Return true if a vertex is inside the right edge of the window
 {
     return vertex.first <= right;
 }
 
-bool in_bottom(Vertex vertex, int bottom) // Return true if a vertex is inside the bottom edge of the window
+bool in_bottom(pair<int,int>  vertex, int bottom) // Return true if a vertex is inside the bottom edge of the window
 {
     return vertex.second >= bottom;
 }
 
-bool in_top(Vertex vertex, int top) // Return true if a vertex is inside the top edge of the window
+bool in_top(pair<int,int>  vertex, int top) // Return true if a vertex is inside the top edge of the window
 {
     return vertex.second <= top;
 }
 
-vector<Vertex> clip_left(vector<Vertex> polygon, int left)
+vector<pair<int,int> > clip_left(vector<pair<int,int> > polygon, int left)
 {
-    vector<Vertex> outlist; // New polygon that is left-clipped
-    Vertex vertex1 = polygon[polygon.size() - 1]; // Set vertex1 to last vertex in the polygon
+    vector<pair<int,int> > outlist; // New polygon that is left-clipped
+    pair<int,int>  vertex1 = polygon[polygon.size() - 1]; // Set vertex1 to last vertex in the polygon
     bool in1 = in_left(vertex1, left); // True if vertex1 is inside the left edge of the window, false otherwise
 
     for(int i = 0; i < polygon.size(); i++)
     {
         // For each vertex in the polygon check whether it's inside or outside the left edge of the window
-        Vertex vertex2 = polygon[i];
+        pair<int,int>  vertex2 = polygon[i];
         bool in2 = in_left(vertex2, left);
 
         // If two adjacent vertices are inside the left edge of the window, push the second vertex to the new polygon
@@ -236,15 +235,15 @@ vector<Vertex> clip_left(vector<Vertex> polygon, int left)
     return outlist; // Return the left-clipped polygon
 }
 
-vector<Vertex> clip_right(vector<Vertex> polygon, int right)
+vector<pair<int,int> > clip_right(vector<pair<int,int> > polygon, int right)
 {
-    vector<Vertex> outlist;
-    Vertex vertex1 = polygon[polygon.size() - 1];
+    vector<pair<int,int> > outlist;
+    pair<int,int>  vertex1 = polygon[polygon.size() - 1];
     bool in1 = in_right(vertex1, right);
 
     for(int i = 0; i < polygon.size(); i++)
     {
-        Vertex vertex2 = polygon[i];
+        pair<int,int>  vertex2 = polygon[i];
         bool in2 = in_right(vertex2, right);
         if(in1 && in2)
             outlist.push_back(vertex2);
@@ -268,15 +267,15 @@ vector<Vertex> clip_right(vector<Vertex> polygon, int right)
 }
 
 
-vector<Vertex> clip_bottom(vector<Vertex> polygon, int bottom)
+vector<pair<int,int> > clip_bottom(vector<pair<int,int> > polygon, int bottom)
 {
-    vector<Vertex> outlist;
-    Vertex vertex1 = polygon[polygon.size() - 1];
+    vector<pair<int,int> > outlist;
+    pair<int,int>  vertex1 = polygon[polygon.size() - 1];
     bool in1 = in_bottom(vertex1, bottom);
 
     for(int i = 0; i < polygon.size(); i++)
     {
-        Vertex vertex2 = polygon[i];
+        pair<int,int>  vertex2 = polygon[i];
         bool in2 = in_bottom(vertex2, bottom);
         if(in1 && in2)
             outlist.push_back(vertex2);
@@ -299,15 +298,15 @@ vector<Vertex> clip_bottom(vector<Vertex> polygon, int bottom)
     return outlist;
 }
 
-vector<Vertex> clip_top(vector<Vertex> polygon, int top)
+vector<pair<int,int> > clip_top(vector<pair<int,int> > polygon, int top)
 {
-    vector<Vertex> outlist;
-    Vertex vertex1 = polygon[polygon.size() - 1];
+    vector<pair<int,int> > outlist;
+    pair<int,int>  vertex1 = polygon[polygon.size() - 1];
     bool in1 = in_top(vertex1, top);
 
     for(int i = 0; i < polygon.size(); i++)
     {
-        Vertex vertex2 = polygon[i];
+        pair<int,int>  vertex2 = polygon[i];
         bool in2 = in_top(vertex2, top);
         if(in1 && in2)
             outlist.push_back(vertex2);
@@ -329,9 +328,9 @@ vector<Vertex> clip_top(vector<Vertex> polygon, int top)
     }
     return outlist;
 }
-vector<Vertex> polygon_clipping_rect(vector<Vertex> polygon, int left, int right, int bottom, int top)
+vector<pair<int,int> > polygon_clipping_rect(vector<pair<int,int> > polygon, int left, int right, int bottom, int top)
 {
-    vector<Vertex> clipped_polygon = clip_bottom(polygon, bottom);
+    vector<pair<int,int> > clipped_polygon = clip_bottom(polygon, bottom);
     clipped_polygon = clip_left(clipped_polygon, left);
     clipped_polygon = clip_top(clipped_polygon, top);
     clipped_polygon = clip_right(clipped_polygon, right);

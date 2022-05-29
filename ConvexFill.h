@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include"Points.h"
+#include <climits>
 using namespace std;
 #define MAXENTRIES 600
 

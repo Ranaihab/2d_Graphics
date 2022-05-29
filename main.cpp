@@ -205,7 +205,7 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 	static int cnt = 0;
 	static Action action;
 	static COLORREF c, fillC;
-    static vector<Vertex> vertices;
+    static vector<pair<int,int> > vertices;
 
 	switch (mcode)
 	{
@@ -547,21 +547,13 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
         }
         else if(action == clipRecPolygon)
         {
-            if(cnt == 1)
-                rectangular_window(hdc, x[0], y[0], 400, 200, c); // Draw a rectangular window
-            else if(cnt == 3) // Store the vertices of the first side of the polygon
+            if(cnt == 5) // Store the vertices of the first side of the polygon
             {
-                //BresenhamLine(hdc, x[1], y[1], x[2], y[2], c);
-
-                // Store the end-points of the first side in the vertex vector
-                vertices.push_back({x[1], y[1]});
-                vertices.push_back({x[2], y[2]});
+                vertices.push_back({x[3], y[3]});
+                vertices.push_back({x[4], y[4]});
             }
-
             else if(cnt > 3) // Store the vertices the next sides, each side's first end-point is the previous side's second end-point
             {
-                //BresenhamLine(hdc, x[cnt - 2], y[cnt - 2], x[cnt - 1], y[cnt - 1], c);
-
                 // Store every second end-point
                 vertices.push_back({x[cnt - 1], y[cnt - 1]});
             }
@@ -585,9 +577,9 @@ LRESULT WINAPI MyWndProc(HWND hwnd, UINT mcode, WPARAM wp, LPARAM lp)
 
 		else if(action == clipRecPolygon)
         {
-            //BresenhamLine(hdc, x[cnt - 1], y[cnt - 1], x[1], y[1], c);
-
-            vector<Vertex> polygon = polygon_clipping_rect(vertices, x[0], x[0] + 400, y[0], y[0] + 200);
+            int w =  sqrt((x[0] - x[1]) * (x[0] - x[1]) + (y[0] - y[1]) * (y[0] - y[1]));
+            int h =  sqrt((x[0] - x[2]) * (x[0] - x[2]) + (y[0] - y[2]) * (y[0] - y[2]));
+            vector<pair<int,int>> polygon = polygon_clipping_rect(vertices, x[0], x[0] + w, y[0], y[0] + h);
 
             // Draw the sides of the clipped polygon except the last one.
             for(int i = 0; i < polygon.size() - 1; i++)
