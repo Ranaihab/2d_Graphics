@@ -6,7 +6,7 @@
 //common function between FillCircleWithLines and FillCircleWithCircles 
 //checks which octant the user clicked on (going anti-clockwise)
 //will be called twice in both functions( FillCircleWithLines and FillCircleWithCircles ) becuase the user will be clicking on 2 octants (1 quadrant).
-int checkOctant(int xc, int yc, int x1, int y1, int R) {
+int checkOctant(int xc, int yc, int x1, int y1) {
 
     if (x1 > xc && y1 < yc && abs(x1 - xc) > abs(y1 - yc)) return 1;
     if (x1 > xc && y1 < yc && abs(x1 - xc) < abs(y1 - yc)) return 2;
@@ -68,8 +68,8 @@ void DrawOneDirectCircle(HDC hdc, int xc, int yc, double r, int octant1, int oct
 
 //will draw circles starting from a radius of 0 to a radius of R
 void FillCircleWithCircles(HDC hdc, int xc, int yc, int R, int x1, int y1, int x2, int y2, COLORREF color) {
-    int octant1 = checkOctant(xc, yc, x1, y1, R);
-    int octant2 = checkOctant(xc, yc, x2, y2, R);
+    int octant1 = checkOctant(xc, yc, x1, y1);
+    int octant2 = checkOctant(xc, yc, x2, y2);
     for (double i = 0; i <= R; i += 0.2) {
         DrawOneDirectCircle(hdc, xc, yc, i, octant1, octant2, color);
     }
@@ -104,20 +104,17 @@ void LineDrawQuarter(HDC hdc, int xc, int yc, int octant1, int octant2, int a, i
     }
 }
 
-//Iterative circle algorithm which will draw a line between the center of the circle and each point on the border of the chosen quadrant
+//Direct circle algorithm which will draw a line between the center of the circle and each point on the border of the chosen quadrant
 void FillCircleWithLines(HDC hdc, int xc, int yc, int r, int x1, int y1, int x2, int y2, COLORREF color) {
-    double theta = 0;
-    double dtheta = 1.0 / r;
-    double x = r;
-    double y = 0;
-    int octant1 = checkOctant(xc, yc, x1, y1, r);
-    int octant2 = checkOctant(xc, yc, x2, y2, r);
+    int x = 0;
+    double y = r;
+    int octant1 = checkOctant(xc, yc, x1, y1);
+    int octant2 = checkOctant(xc, yc, x2, y2);
     LineDrawQuarter(hdc, xc, yc, octant1, octant2, ceil(x), ceil(y), color);
     LineDrawQuarter(hdc, xc, yc, octant1, octant2, floor(x), floor(y), color);
-    while (x >= y) {
-        theta += dtheta;
-        x = r * cos(theta);
-        y = r * sin(theta);
+    while (x < y) {
+        x++;
+        y = sqrt(r * r - x * x);
         LineDrawQuarter(hdc, xc, yc, octant1, octant2, ceil(x), ceil(y), color);
         LineDrawQuarter(hdc, xc, yc, octant1, octant2, floor(x), floor(y), color);
     }
