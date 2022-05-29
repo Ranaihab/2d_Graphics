@@ -135,55 +135,58 @@ void point_clipping_circular(HDC hdc, int xc, int yc, int r, int x, int y, COLOR
         Points::addPoint(hdc, Round(x), Round(y), c);
 }
 
-bool in_left(Vertex vertex, int left) // return true if a vertex is
+bool in_left(Vertex vertex, int left) // Return true if a vertex is inside the left edge of the window
 {
     return vertex.first >= left;
 
 }
-bool in_right(Vertex vertex, int right)
+bool in_right(Vertex vertex, int right) // Return true if a vertex is inside the right edge of the window
 {
     return vertex.first <= right;
 }
 
-bool in_bottom(Vertex vertex, int bottom)
+bool in_bottom(Vertex vertex, int bottom) // Return true if a vertex is inside the bottom edge of the window
 {
     return vertex.second >= bottom;
 }
 
-bool in_top(Vertex vertex, int top)
+bool in_top(Vertex vertex, int top) // Return true if a vertex is inside the top edge of the window
 {
     return vertex.second <= top;
 }
 
 vector<Vertex> clip_left(vector<Vertex> polygon, int left)
 {
-    vector<Vertex> outlist;
-    Vertex vertex1 = polygon[polygon.size() - 1];
-    bool in1 = in_left(vertex1, left);
+    vector<Vertex> outlist; // New polygon that is left-clipped
+    Vertex vertex1 = polygon[polygon.size() - 1]; // Set vertex1 to last vertex in the polygon
+    bool in1 = in_left(vertex1, left); // True if vertex1 is inside the left edge of the window, false otherwise
 
     for(int i = 0; i < polygon.size(); i++)
     {
+        // For each vertex in the polygon check whether it's inside or outside the left edge of the window
         Vertex vertex2 = polygon[i];
         bool in2 = in_left(vertex2, left);
+
+        // If two adjacent vertices are inside the left edge of the window, push the second vertex to the new polygon
         if(in1 && in2)
             outlist.push_back(vertex2);
-        else if(in1)
+        else if(in1) // If an inside vertex is followed by an outside vertex, find the intersection point of that side with the left edge
         {
             float x,y;
             vertical_intercept(vertex1.first,vertex1.second,vertex2.first,vertex2.second, left, x, y);
-            outlist.push_back({x,y});
+            outlist.push_back({x,y}); // Push the intersection point to the new polygon
         }
-        else if(in2)
+        else if(in2) // If an outside vertex is followed by an inside vertex, find the intersection point of that side with the left edge
         {
             float x,y;
             vertical_intercept(vertex1.first,vertex1.second,vertex2.first,vertex2.second, left, x, y);
-            outlist.push_back({x,y});
-            outlist.push_back(vertex2);
+            outlist.push_back({x,y}); // Push the intersection point to the new polygon
+            outlist.push_back(vertex2); // Push the second vertex to the new polygon
         }
         vertex1 = vertex2;
         in1 = in2;
     }
-    return outlist;
+    return outlist; // Return the left-clipped polygon
 }
 
 vector<Vertex> clip_right(vector<Vertex> polygon, int right)
