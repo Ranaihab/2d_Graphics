@@ -1,6 +1,9 @@
+#pragma once
 //
 // Created by Rana Hisham on 27-May-22.
 //
+#include"line.h"
+#include<math.h>
 
 typedef pair<int,int> Vertex;
 
@@ -106,33 +109,77 @@ bool line_clipping_rect(float left, float right, float bottom, float top, float&
 }
 
 
-void line_clipping_circle(HDC hdc, int xc, int yc, int r, float& x1, float& y1, float& x2, float& y2, COLORREF c)
-{
-    double x, y;
-    for (double i = 0; i <= 1; i += 0.001) {
-        x = x1 + i * (x2 - x1);
-        y = y1 + i * (y2 - y1);
-        double diff_x = (xc - x);
-        double diff_y = (yc - y);
-        if(diff_x * diff_x + diff_y * diff_y > r * r)
-            continue;
-        Points::addPoint(hdc, Round(x), Round(y), c);
+void line_clipping_circle(HDC hdc, int xc, int yc, int r, int x1, int y1, int x2, int y2, COLORREF color) {
+    if (y1 > y2)
+        swap(x1, y1, x2, y2);
+    double d1 = sqrt(pow(x1 - xc, 2) + pow(yc - y1, 2));
+    double d2 = sqrt(pow(x2 - xc, 2) + pow(yc - y2, 2));
+    int dx = x2 - x1;
+    int dy = y2 - y1;
+    if (dx != 0) {
+        double m = 1.0 * dy / dx;
+        cout<<m;
+        double d = y1 - m * x1;
+        double a = 1 + m * m;
+        double b = 2 * m * d - 2 * xc - 2 * m * yc;
+        double c = xc * xc + yc * yc + d * d - r * r - 2 * d * yc;
+        double delta = b * b - 4 * a * c;
+        if (delta < 0) {
+            return;
+        }
+        int tempX1 = ((-1 * b + sqrt(delta)) / (2 * a));
+        int tempX2 = Round((-1 * b - sqrt(delta)) / (2 * a));
+        int tempY1 = Round(tempX1 * m + d);
+        int tempY2 = Round(tempX2 * m + d);
+
+
+        if (d1 > r) {
+            int d11 = sqrt(pow(x1 - tempX1, 2) + pow(tempY1 - y1, 2));
+            int d12 = sqrt(pow(x1 - tempX2, 2) + pow(tempY2 - y1, 2));
+            if (d11 < d12) {
+                x1 = tempX1;
+                y1 = tempY1;
+            } else {
+                x1 = tempX2;
+                y1 = tempY2;
+            }
+        }
+        if (d2 > r) {
+            int d11 = sqrt(pow(x2 - tempX1, 2) + pow(tempY1 - y2, 2));
+            int d12 = sqrt(pow(x2 - tempX2, 2) + pow(tempY2 - y2, 2));
+            if (d11 > d12) {
+                x2 = tempX2;
+                y2 = tempY2;
+            } else {
+                x2 = tempX1;
+                y2 = tempY1;
+            }
+        }
+    } else {
+        if (d1 > r && d2 > r && (y1 < yc && y2 < yc || y2 > yc && y1 > yc || x1 < xc - r || x1 > xc + r))
+            return;
+        if (d1 > r) {
+            y1 = y1 + (d1 - r);
+        }
+        if (d2 > r) {
+            y2 = y2 - (d2 - r);
+        }
     }
-
+    cout << x1 << " " << y1 << " " << x2 << " " << y2 << " " << endl;
+    BresenhamLine(hdc, x1, y1, x2, y2, color);
 }
 
-void point_clipping_rectangular(HDC hdc, float left, float right, float bottom, float top, float x, float y, COLORREF c)
-{
-    if(x >= left && x <= right && y >= bottom && y <= top)
+void point_clipping_rectangular(HDC hdc, float left, float right, float bottom, float top, float x, float y, COLORREF c) {
+    if (x >= left && x <= right && y >= bottom && y <= top)
         Points::addPoint(hdc, Round(x), Round(y), c);
 }
 
-void point_clipping_circular(HDC hdc, int xc, int yc, int r, int x, int y, COLORREF c)
-{
+void point_clipping_circular(HDC hdc, int xc, int yc, int r, int x, int y, COLORREF c) {
     int diff_x = (xc - x);
     int diff_y = (yc - y);
-    if(diff_x * diff_x + diff_y * diff_y < r * r)
+    if (diff_x * diff_x + diff_y * diff_y < r * r)
         Points::addPoint(hdc, Round(x), Round(y), c);
+
 }
 
 bool in_left(Vertex vertex, int left) // Return true if a vertex is inside the left edge of the window

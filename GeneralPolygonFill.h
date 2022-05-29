@@ -5,6 +5,7 @@
 #include <cmath>
 #include <vector>
 #include <list>
+#include"Points.h"
 using namespace std;
 
 #define MAX_ENTRIES 600
@@ -61,7 +62,7 @@ void GeneralPolygonFill(HDC hdc, POINT* polygon, int n, COLORREF color)
 			it++;
 			int x2 = (int)floor(it->x);
 			for (int x = x1; x <= x2; x++) {
-				SetPixel(hdc, x, y, color);
+				Points::addPoint(hdc, x, y, color);
 			}
 		}
 		y++;

@@ -1,17 +1,19 @@
 #pragma once
-
+#include<windows.h>
+#include"Points.h"
 #include "math.h"
 #include <stack>
 using namespace std;
 void recursiveFloodFill(HDC hdc, int x, int y, COLORREF borderC, COLORREF fillC)
 {
-    COLORREF C = GetPixel(hdc, x, y);
+    COLORREF C;
+    C = GetPixel(hdc, x, y);
     if (C == borderC || C ==  fillC)return;
-    SetPixel(hdc, x, y, fillC);
+    Points::addPoint(hdc, x, y, fillC);
     recursiveFloodFill(hdc, x + 1, y, borderC, fillC);
     recursiveFloodFill(hdc, x - 1, y, borderC, fillC);
     recursiveFloodFill(hdc, x, y + 1, borderC, fillC);
-    recursiveFloodFill(hdc, x, y - 1, borderC, fillC);
+    return recursiveFloodFill(hdc, x, y - 1, borderC, fillC);
 }
 
 struct Vertex
@@ -21,6 +23,7 @@ struct Vertex
     {
     }
 };
+
 void NRFloodFill(HDC hdc, int x, int y, COLORREF borderC, COLORREF fillC)
 {
     stack<Vertex> S;
@@ -29,13 +32,14 @@ void NRFloodFill(HDC hdc, int x, int y, COLORREF borderC, COLORREF fillC)
     {
         Vertex v = S.top();
         S.pop();
-        COLORREF c = GetPixel(hdc, v.x, v.y);
+        COLORREF c;
+        c = GetPixel(hdc, v.x, v.y);
         if (c == borderC || c == fillC)continue;
-        SetPixel(hdc, v.x, v.y, fillC);
+        Points::addPoint(hdc, v.x, v.y, fillC);
         S.push(Vertex(v.x, v.y - 1));
         S.push(Vertex(v.x, v.y + 1));
-        S.push(Vertex(v.x + 1, v.y));
         S.push(Vertex(v.x - 1, v.y));
+        S.push(Vertex(v.x + 1, v.y));
 
 
     }

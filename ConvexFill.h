@@ -1,9 +1,9 @@
-
 #include <tchar.h>
 #include <windows.h>
 #include <math.h>
 #include <cmath>
 #include <vector>
+#include"Points.h"
 using namespace std;
 #define MAXENTRIES 600
 
@@ -44,7 +44,7 @@ void DrawScanLines(HDC hdc, Entry table[], COLORREF color)
 		if (table[y].xmin < table[y].xmax) {
 			int x;
 			for (x = table[y].xmin; x <= table[y].xmax; x++) {
-				SetPixel(hdc, x, y, color);
+				Points::addPoint(hdc, x, y, color);
 			}
 		}
 	}
