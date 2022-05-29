@@ -28,7 +28,7 @@ void PolarEllipse(HDC hdc, int xc, int yc, int a, int b, COLORREF c) {
 	double x = a;
 	double y = 0;
 	double theta = 0;
-	double dtheta = 1.0 / ((a+b)/2);
+	double dtheta = 1.0 / ((a+b));
 	double cd = cos(dtheta);
 	double sd = sin(dtheta);
 
